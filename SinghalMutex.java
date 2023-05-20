@@ -8,6 +8,7 @@ public class SinghalMutex extends Process implements Lock{
     Set<Integer> inform_set = new HashSet<Integer>(); 
     
     boolean requesting;
+    boolean executing;
 
 
     public SinghalMutex(Linker initComm) {
@@ -30,9 +31,11 @@ public class SinghalMutex extends Process implements Lock{
             myWait();
         }
         requesting = false;
+        executing = true;
     }
 
     public synchronized void releaseCS(){
+        executing = false;
         for(Integer id : inform_set){
             sendMsg(id, "okay", c.getValue());
             request_set.add(id);
@@ -57,6 +60,10 @@ public class SinghalMutex extends Process implements Lock{
                         sendMsg(src, "request", c.getValue());
                     }
                 }
+            }
+
+            else if(executing){
+                inform_set.add(src);
             }
 
             else{
