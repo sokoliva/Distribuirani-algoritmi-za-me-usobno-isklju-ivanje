@@ -10,7 +10,6 @@ public class SinghalMutex extends Process implements Lock{
     boolean requesting;
     boolean executing;
 
-
     public SinghalMutex(Linker initComm) {
         super(initComm);
         //inicijalizacija request skupa

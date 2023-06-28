@@ -9,6 +9,8 @@ public class LockTester {
             Lock lock = null;
             if (args[3].equals("Singhal"))
                 lock = new SinghalMutex(comm);
+            if (args[3].equals("LodhaKshemkalyani"))
+                lock = new LodhaKshemkalyaniMutex(comm);
             for (int i = 0; i < numProc; i++)
                if (i != myId)
                   (new ListenerThread(i, (MsgHandler)lock)).start();
