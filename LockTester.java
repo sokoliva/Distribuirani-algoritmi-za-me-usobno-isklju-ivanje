@@ -11,6 +11,9 @@ public class LockTester {
                 lock = new SinghalMutex(comm);
             if (args[3].equals("LodhaKshemkalyani"))
                 lock = new LodhaKshemkalyaniMutex(comm);
+            if (args[3].equals("Maekawa")){
+                String kvorum = args[4];
+                lock = new MaekawaMutex(comm, kvorum);}
             for (int i = 0; i < numProc; i++)
                if (i != myId)
                   (new ListenerThread(i, (MsgHandler)lock)).start();
