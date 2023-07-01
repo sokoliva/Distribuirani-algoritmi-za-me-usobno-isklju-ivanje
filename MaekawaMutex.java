@@ -6,12 +6,14 @@ public class MaekawaMutex extends Process implements Lock {
     boolean reply = false;
     public int R[]; 
     public boolean L[];
+    public boolean Y[];
     int numOkay = 0;
     SortedSet<Pair> LRQ = new TreeSet<>();
     SortedSet<Pair> temp = new TreeSet<>();
     int last_granted;
     int last_ts;
     boolean failed = false;
+    boolean Yfailed = false;
 
     public MaekawaMutex(Linker initComm, String kvorum) {
         super(initComm);
@@ -21,6 +23,7 @@ public class MaekawaMutex extends Process implements Lock {
             R[i] = Integer.parseInt(kvorum_[i]);
         }
         L = new boolean[N];
+        Y = new boolean[N];
         myts = Symbols.Infinity;
         last_granted = myId;
         last_ts = Symbols.Infinity;
@@ -41,13 +44,13 @@ public class MaekawaMutex extends Process implements Lock {
     }
 
     public synchronized void selfRequest(){
-        //System.out.println("self request ");
+        System.out.println("self request ");
         //da si dopustenje
         if(!reply){
             numOkay++;
             reply = true;
             last_granted = myId;
-            //System.out.println("ima me " + last_granted);
+            System.out.println("ima me " + last_granted);
             last_ts = myts;
             L[myId] = true;
         }
@@ -64,7 +67,7 @@ public class MaekawaMutex extends Process implements Lock {
     }
     
     public synchronized void selfRelease(){
-        //System.out.println("self release ");
+        System.out.println("self release ");
         if(LRQ.isEmpty()){
             reply = false;
         }
@@ -76,7 +79,7 @@ public class MaekawaMutex extends Process implements Lock {
                 numOkay++;
             }
             last_granted = LRQ.first().getY();
-            //System.out.println("ima me " + last_granted);
+            System.out.println("ima me " + last_granted);
             last_ts = LRQ.first().getX();
             LRQ.remove(LRQ.first());
             while(!LRQ.isEmpty()){
@@ -111,12 +114,12 @@ public class MaekawaMutex extends Process implements Lock {
         c.receiveAction(src, timeStamp);
         switch (tag) {
             case "request":
-                //System.out.println(reply);
+                System.out.println(reply);
                 //nikome nije dao dopustenje sve ok
                 if(!reply){
                     reply = true;
                     last_granted = src;
-                    //System.out.println("ima me " + last_granted);
+                    System.out.println("ima me " + last_granted);
                     last_ts = timeStamp;
                     sendMsg(src, "reply", c.getValue());
                 }
@@ -140,7 +143,7 @@ public class MaekawaMutex extends Process implements Lock {
                             if(failed){
                                 sendMsg(LRQ.first().getY(), "reply", c.getValue());
                                 last_granted = LRQ.first().getY();
-                                //System.out.println("ima me " + last_granted);
+                                System.out.println("ima me " + last_granted);
                                 last_ts = c.getValue();
                                 L[myId] = false;
                                 LRQ.remove(LRQ.first());
@@ -151,6 +154,10 @@ public class MaekawaMutex extends Process implements Lock {
                     }
                 }   break;
             case "reply":
+                if(Y[src] == true){
+                    Yfailed = false;
+                    Y[src] = false;
+                }
                 failed = false;
                 L[src] = true;
                 numOkay++;
@@ -171,7 +178,7 @@ public class MaekawaMutex extends Process implements Lock {
                         numOkay++;
                     }
                     last_granted = LRQ.first().getY();
-                    //System.out.println("ima me " + last_granted);
+                    System.out.println("ima me " + last_granted);
                     last_ts = LRQ.first().getX();
                     LRQ.remove(LRQ.first());
                 }   break;
@@ -179,6 +186,8 @@ public class MaekawaMutex extends Process implements Lock {
                 if(failed){
                     L[src] = false;
                     sendMsg(src, "yield", c.getValue());
+                    Yfailed = true;
+                    Y[src] = true;
                     numOkay--;
                 }   break;
             case "yield":
@@ -191,24 +200,27 @@ public class MaekawaMutex extends Process implements Lock {
                     L[myId] = true;
                 }
                 last_granted = LRQ.first().getY();
-                //System.out.println("ima me " + last_granted);
+                System.out.println("ima me " + last_granted);
                 last_ts = LRQ.first().getX();
                 LRQ.remove(LRQ.first());
                 break;
             case "failed":
                 numOkay = 0;
                 failed = true;
+                
+                
                 for(int i = 0; i < N; i++){
                     if(L[i] == true){
                         L[i] = false;
                         if(i != myId){
                             sendMsg(i, "yield", c.getValue());  
+                            //numOkay--;
                         }
                         else{
                             Pair pair3 = new Pair(last_ts, last_granted);
                             LRQ.add(pair3);
                             last_granted = LRQ.first().getY();
-                            //System.out.println("ima me " + last_granted);
+                            System.out.println("ima me " + last_granted);
                             last_ts = LRQ.first().getX();
                             if(last_granted == myId){
                                 L[myId] = true;
@@ -218,9 +230,30 @@ public class MaekawaMutex extends Process implements Lock {
                                 sendMsg(LRQ.first().getY(), "reply", c.getValue());
                             }
                             LRQ.remove(LRQ.first());
+                            
+                            /*
+                            while(!LRQ.isEmpty()){
+                                temp.add(LRQ.first());
+                                if(myId != LRQ.first().getY()){
+                                    sendMsg(LRQ.first().getY(), "failed", c.getValue());
+                                    }
+                                else{
+                                    failed = true;
+                                }
+                                LRQ.remove(LRQ.first());
+                            }
+                            while(!LRQ.isEmpty()){
+                                LRQ.add(temp.first());
+                                temp.remove(LRQ.first());
+                            } 
+                            */
                         }
                     }
-                }   break;
+                    
+                }
+                
+                
+                break;
             default:
                 break;
         }
