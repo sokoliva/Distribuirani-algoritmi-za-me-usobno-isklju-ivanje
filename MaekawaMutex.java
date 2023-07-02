@@ -37,13 +37,14 @@ public class MaekawaMutex extends Process implements Lock {
         c.tick();
         myts = c.getValue();
         int reqts = myts;
+        Y[myId] = true;
         selfRequest(reqts);
         for(int i = 0; i < R.length; i++){
             if(R[i]!=myId){ sendMsg(R[i], "request", reqts);}
             Y[R[i]] = true;
+            Yfailed = true;
         }
         //sam sebe ispituje
-        Y[myId] = true;
         while(numOkay < R.length){myWait();}
     }
 
@@ -192,12 +193,14 @@ public class MaekawaMutex extends Process implements Lock {
                         else{
                             //zeznuh se, vracam si dopustenje
                             if(failed || Yfailed){
-                                Pair pair2 = new Pair(last_ts, myId);
+                                Pair pair2 = new Pair(svojReq, myId);
+                                //System.out.println("SAM SEBI ODUZIMAM, VRIJEME " + svojReq);
                                 LRQ.add(pair2);
                                 numOkay--;
                                 //System.out.println("num " + numOkay);
                                 last_granted = LRQ.first().getY();
                                 last_ts = LRQ.first().getX();
+                                //System.out.println("NOVI " + last_granted + " " + last_ts);
                                 if(last_granted != myId){
                                     sendMsg(LRQ.first().getY(), "reply", c.getValue());
                                     L[myId] = false;
