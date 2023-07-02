@@ -19,10 +19,10 @@ public class LockTester {
                   (new ListenerThread(i, (MsgHandler)lock)).start();
             while (true) {
                 System.out.println(myId + " is not in CS");
-                Util.mySleep(12000);
+                Util.mySleep(2000);
                 lock.requestCS();
                 System.out.println(myId + " is in CS *****");
-                Util.mySleep(12000);
+                Util.mySleep(10000);
                 lock.releaseCS();
             }
         }

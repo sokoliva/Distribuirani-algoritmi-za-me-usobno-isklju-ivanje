@@ -12,6 +12,13 @@ public class Connector {
         myNameclient.insertName(basename + myId,
         (InetAddress.getLocalHost()).getHostName(), localport);
         
+        /*
+        link[myId] = new Socket(InetAddress.getLocalHost(), localport);
+        dataOut[myId] = new PrintWriter(link[myId].getOutputStream());
+        dataIn[myId] = new BufferedReader(new InputStreamReader(link[myId].getInputStream()));
+        */
+        
+        
         /* accept connections from all the smaller processes */
         for (int i = 0; i < myId; i++) {
             Socket s = listener.accept();

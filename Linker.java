@@ -16,7 +16,7 @@ public class Linker {
         connector = new Connector();
         connector.Connect(basename, myId, numProc, dataIn, dataOut);
     }
-    public void sendMsg(int destId, String tag, String msg) {     
+    public void sendMsg(int destId, String tag, String msg) {
         dataOut[destId].println(myId + " " + destId + " " + 
 				      tag + " " + msg + "#");
         dataOut[destId].flush();
@@ -29,7 +29,7 @@ public class Linker {
             sendMsg(destIds.getEntry(i), tag, msg);
         }
     }
-    public Msg receiveMsg(int fromId) throws IOException  {        
+    public Msg receiveMsg(int fromId) throws IOException  {   
         String getline = dataIn[fromId].readLine();
         Util.println(" received message " + getline);
         StringTokenizer st = new StringTokenizer(getline);
